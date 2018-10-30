@@ -10,5 +10,6 @@
     <orderEntry type="library" name="com.google.code.gson:gson:2.8.5" level="project" />
     <orderEntry type="library" name="com.sparkjava:spark-core:2.8.0" level="project" />
     <orderEntry type="library" name="org.mongodb:mongodb-driver:3.8.2" level="project" />
+    <orderEntry type="library" name="org.slf4j:slf4j-api:1.7.25" level="project" />
   </component>
 </module>
