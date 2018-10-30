@@ -1,5 +1,6 @@
 package main.java;
 
+import static com.mongodb.client.model.Filters.eq;
 import static spark.Spark.*;
 import java.io.*;
 import com.mongodb.*;
@@ -9,6 +10,7 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import org.bson.Document;
 
+import java.sql.Timestamp;
 import java.util.*;
 
 
@@ -26,9 +28,26 @@ public class Main {
         MongoDatabase db = mongoClient.getDatabase("REST2");
         MongoCollection<Document> usersCollection = db.getCollection("users");
         MongoCollection<Document> authCollection = db.getCollection("auth");
-        
+
         get("/hello", (req, res) -> "Hello World");
 
+        get("/login", (request, response) -> {
+            String un = request.queryParams("username");
+            String pw = request.queryParams("password");
+            Document user = usersCollection.find(eq("username", un)).first();
+            String rightPassword = user.getString("password");
+            Timestamp timestamp = new Timestamp(System.currentTimeMillis());
+            Document token = new Document();
+            if (pw.equals(rightPassword)) {
+                token.append("username", un);
+                String currentTime = Long.toString(timestamp.getTime());
+                token.append("token", currentTime);
+                authCollection.insertOne(token);
+                return "Token = " + currentTime;
+            }else {
+                return "login_failed";
+            }
+        });
 
     }
 }
