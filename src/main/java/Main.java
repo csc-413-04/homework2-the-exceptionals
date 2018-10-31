@@ -54,7 +54,24 @@ public class Main{
         });
 
         get("/addfriend", (req, res)-> {
-            return null;
+            String friendToken = req.queryParams("token");
+            String reqFriendUserID = req.queryParams("friendsuserid")
+            ObjectId searchToken = new ObjectId(friendToken);
+            Document searchID = usersCollection.find(eq("_id", searchToken)).first();
+            String trueID = searchID.getString("_id");
+            if(trueID.equals(reqFriendUserID)) {
+                //insert friend's user ID into requested user's friend_ids list
+                //needs to be tested and probably refined
+                Document friendID = new Document();
+                friendID.append("friend_ids", trueID);
+                usersCollection.insertOne(friendID);
+                return "Friend added successfully";
+            } else {
+                return "Bad token or friend ID";
+            }
+            //check auth collection for valid Token
+            //if token is valid, we search the username key associated with the token
+            // add the user to the requested user's friend list by ID-Name
         });
 
         get("/friends", (req, res)-> {
