@@ -7,7 +7,7 @@ import com.mongodb.DB;
 import com.mongodb.client.*;
 import org.bson.Document;
 import com.mongodb.MongoClient;
-
+import org.bson.types.ObjectId;
 import java.sql.Timestamp;
 import java.util.*;
 
@@ -53,6 +53,20 @@ public class Main{
             return "New User Created: " + "Username: " + username + " Password: " + password;
         });
 
+        get("/addfriend", (req, res)-> {
+            return null;
+        });
+
+        get("/friends", (req, res)-> {
+            String token = req.queryParams("token");
+            ObjectId searchToken = new ObjectId(token);
+            Document searchID = usersCollection.find(eq("_id", searchToken)).first();
+            if(searchID != null){
+                Object matchedFriend = searchID.get("friend");
+                return matchedFriend;
+            }
+            else{ return "Bad token.";}
+        });
 
     }
 }
