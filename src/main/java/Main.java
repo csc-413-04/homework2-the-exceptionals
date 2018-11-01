@@ -5,8 +5,10 @@ import static spark.Spark.*;
 import static com.mongodb.client.model.Filters.*;
 import com.mongodb.DB;
 import com.mongodb.client.*;
+import com.mongodb.client.model.Updates;
 import org.bson.Document;
 import com.mongodb.MongoClient;
+import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
 import java.sql.Timestamp;
 import java.util.*;
@@ -54,20 +56,21 @@ public class Main{
         });
 
         get("/addfriend", (req, res)-> {
-            String friendToken = req.queryParams("token");
-            String reqFriendUserID = req.queryParams("friendsuserid")
-            ObjectId searchToken = new ObjectId(friendToken);
-            Document searchID = usersCollection.find(eq("_id", searchToken)).first();
-            String trueID = searchID.getString("_id");
-            if(trueID.equals(reqFriendUserID)) {
-                //insert friend's user ID into requested user's friend_ids list
-                //needs to be tested and probably refined
-                Document friendID = new Document();
-                friendID.append("friend_ids", trueID);
-                usersCollection.insertOne(friendID);
+            String token = req.queryParams("token");
+            ObjectId searchToken = new ObjectId(token);
+            Document validateToken = authCollection.find(eq("token", searchToken)).first();
+            String tokenString = validateToken.getString("token");
+            if(tokenString.equals(token)) { //checks to see if given token is valid
+                //gets our current username by their token
+                Document authenticatedUser = authCollection.find(eq("username", token)).first();
+                String usersID = req.queryParams("friendsuserid");
+                ObjectId userId = new ObjectId(usersID);
+                Document findRequestedUser = usersCollection.find(new Document("_id", userId)).first();
+                Document newFriend = new Document().append("friend_id", findRequestedUser);
+                usersCollection.updateOne(eq("_id", authenticatedUser), Updates.addToSet("friend_ids", newFriend);
                 return "Friend added successfully";
             } else {
-                return "Bad token or friend ID";
+                return "Bad token";
             }
             //check auth collection for valid Token
             //if token is valid, we search the username key associated with the token
