@@ -2,16 +2,10 @@ package main.java;
 
 import static com.mongodb.client.model.Filters.eq;
 import static spark.Spark.*;
-import static com.mongodb.client.model.Filters.*;
-import com.mongodb.DB;
 import com.mongodb.client.*;
-import com.mongodb.client.model.Updates;
 import org.bson.Document;
 import com.mongodb.MongoClient;
-import org.bson.conversions.Bson;
-import org.bson.types.ObjectId;
 import java.sql.Timestamp;
-import java.util.*;
 
 
 public class Main{
