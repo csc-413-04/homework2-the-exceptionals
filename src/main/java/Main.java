@@ -6,6 +6,8 @@ import com.mongodb.client.*;
 import org.bson.Document;
 import com.mongodb.MongoClient;
 import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.List;
 
 
 public class Main{
@@ -41,10 +43,11 @@ public class Main{
 
         get("/newuser", (req, res)-> {
             String username = req.queryParams("username");
-            System.out.print(username);
+            System.out.print(username+"\n");
             String password = req.queryParams("password");
             Document dc = new Document("username", username);
-            dc.append("username", username).append("password", password);
+            List<Document> friends = new ArrayList<Document>();
+            dc.append("username", username).append("password", password).append("friends", friends);
             usersCollection.insertOne(dc);
             return "New User Created: " + "Username: " + username + " Password: " + password;
         });
@@ -57,11 +60,16 @@ public class Main{
                 Document user = usersCollection.find(eq("username", reqUsername)).first();
                 String rightUsername = user.getString("username");
                 String password = user.getString("password");
-                usersCollection.findOneAndDelete(user);
+                Document friend = usersCollection.find(eq("username", reqFriendUserID)).first();
+                List<Document> friends = user.get("friends", List.class);
+                friend.remove("password");
+                friend.remove("friends");
+                friends.add(friend);
+                usersCollection.deleteOne(usersCollection.find(eq("username", reqUsername)).first());
                 Document user2 = new Document();
                 user2.append("username", rightUsername);
                 user2.append("password", password);
-                user2.append("friends", reqFriendUserID);
+                user2.append("friends", friends);
                 usersCollection.insertOne(user2);
                 return "Friend added successfully";
             }
@@ -76,15 +84,12 @@ public class Main{
             Document auth = authCollection.find(eq("token", token)).first();
             String reqUsername = auth.getString("username");
             Document user = usersCollection.find(eq("username", reqUsername)).first();
-            String otherfriendsid = user.getString("friends");
-            String password = user.getString("password");
-            usersCollection.findOneAndDelete(user);
-            Document user2 = new Document();
-            user2.append("username", reqUsername);
-            user2.append("password", password);
-            user2.append("friends", otherfriendsid);
-            usersCollection.insertOne(user2);
-            return otherfriendsid;
+            List<Document> friends = user.get("friends", List.class);
+            List<String> friendNames = new ArrayList<>();
+            for (int i = 0; i < friends.size(); i++) {
+                friendNames.add(friends.get(i).getString("username"));
+            }
+            return "Friends: "+friendNames;
         });
 
     }
