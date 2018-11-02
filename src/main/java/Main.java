@@ -79,13 +79,18 @@ public class Main{
 
         get("/friends", (req, res)-> {
             String token = req.queryParams("token");
-            ObjectId searchToken = new ObjectId(token);
-            Document searchID = usersCollection.find(eq("_id", searchToken)).first();
-            if(searchID != null){
-                Object matchedFriend = searchID.get("friend");
-                return matchedFriend;
-            }
-            else{ return "Bad token.";}
+            Document auth = authCollection.find(eq("token", token)).first();
+            String reqUsername = auth.getString("username");
+            Document user = usersCollection.find(eq("username", reqUsername)).first();
+            String otherfriendsid = user.getString("friends");
+            String password = user.getString("password");
+            usersCollection.findOneAndDelete(user);
+            Document user2 = new Document();
+            user2.append("username", reqUsername);
+            user2.append("password", password);
+            user2.append("friends", otherfriendsid);
+            usersCollection.insertOne(user2);
+            return otherfriendsid;
         });
 
     }
