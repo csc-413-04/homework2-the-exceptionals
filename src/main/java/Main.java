@@ -54,28 +54,28 @@ public class Main{
             usersCollection.insertOne(dc);
             return "New User Created: " + "Username: " + username + " Password: " + password;
         });
-
         get("/addfriend", (req, res)-> {
             String token = req.queryParams("token");
-            ObjectId searchToken = new ObjectId(token);
-            Document validateToken = authCollection.find(eq("token", searchToken)).first();
-            String tokenString = validateToken.getString("token");
-            if(tokenString.equals(token)) { //checks to see if given token is valid
-                //gets our current username by their token
-                Document authenticatedUser = authCollection.find(eq("username", token)).first();
-                String usersID = req.queryParams("friendsuserid");
-                ObjectId userId = new ObjectId(usersID);
-                Document findRequestedUser = usersCollection.find(new Document("_id", userId)).first();
-                Document newFriend = new Document().append("friend_id", findRequestedUser);
-                usersCollection.updateOne(eq("_id", authenticatedUser), Updates.addToSet("friend_ids", newFriend);
+            String reqFriendUserID = req.queryParams("friend");
+            Document auth = authCollection.find(eq("token", token)).first();
+            if (auth!=null) {
+                String reqUsername = auth.getString("username");
+                Document user = usersCollection.find(eq("username", reqUsername)).first();
+                String rightUsername = user.getString("username");
+                String password = user.getString("password");
+                usersCollection.findOneAndDelete(user);
+                Document user2 = new Document();
+                user2.append("username", rightUsername);
+                user2.append("password", password);
+                user2.append("friends", reqFriendUserID);
+                usersCollection.insertOne(user2);
                 return "Friend added successfully";
-            } else {
-                return "Bad token";
             }
-            //check auth collection for valid Token
-            //if token is valid, we search the username key associated with the token
-            // add the user to the requested user's friend list by ID-Name
+            else{
+                return "failed authentication";
+            }
         });
+
 
         get("/friends", (req, res)-> {
             String token = req.queryParams("token");
