@@ -35,7 +35,7 @@ public class Main{
                 String currentTime = Long.toString(timestamp.getTime());
                 token.append("token", currentTime);
                 authCollection.insertOne(token);
-                return "Token = " + currentTime;
+                return currentTime;
             }else {
                 return "login_failed";
             }
@@ -43,13 +43,13 @@ public class Main{
 
         get("/newuser", (req, res)-> {
             String username = req.queryParams("username");
-            System.out.print(username+"\n");
+            System.out.print("New user: "+username+" created\n");
             String password = req.queryParams("password");
             Document dc = new Document("username", username);
             List<Document> friends = new ArrayList<Document>();
             dc.append("username", username).append("password", password).append("friends", friends);
             usersCollection.insertOne(dc);
-            return "New User Created: " + "Username: " + username + " Password: " + password;
+            return "okay";
         });
         get("/addfriend", (req, res)-> {
             String token = req.queryParams("token");
@@ -71,7 +71,7 @@ public class Main{
                 user2.append("password", password);
                 user2.append("friends", friends);
                 usersCollection.insertOne(user2);
-                return "Friend added successfully";
+                return "okay";
             }
             else{
                 return "failed authentication";
@@ -89,7 +89,7 @@ public class Main{
             for (int i = 0; i < friends.size(); i++) {
                 friendNames.add(friends.get(i).getString("username"));
             }
-            return "Friends: "+friendNames;
+            return friendNames;
         });
 
     }
